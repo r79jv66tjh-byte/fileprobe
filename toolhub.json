@@ -1,0 +1,423 @@
+{
+  "name": "FileProbe",
+  "description": "Untersucht Dateien und Spieldaten unter Windows: Dateiformat erkennen (auch ohne Endung, verschlüsselt/komprimiert/XOR), Spiel-Archive auflisten und entpacken (ZIP/PK3, Doom-WAD, WAD3, Quake-PAK, Unreal-PAK, Unity-Bundle, VPK, Godot-PCK), Registry-Snapshots vergleichen und beobachten, welche Dateien ein Programm schreibt. Liest nur; untersuchte Dateien und die Registry werden nie verändert, nichts wird ausgeführt.",
+  "category": "Daten & Dateien untersuchen",
+  "commands": [
+    {
+      "name": "identify",
+      "description": "Erkennt, was in einer Datei steckt: Format per Signatur, Entropie, Hinweise (falsche Endung, verschlüsselt, komprimiert, XOR) und eingebettete Bilder/Sounds/Archive mit Offset und Länge.",
+      "run": [
+        "python",
+        "cli.py",
+        "identify",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "path",
+          "flag": "--path",
+          "type": "string",
+          "required": true,
+          "description": "Pfad der zu untersuchenden Datei."
+        },
+        {
+          "name": "no_embedded",
+          "flag": "--no-embedded",
+          "type": "boolean",
+          "required": false,
+          "description": "Suche nach eingebetteten Dateien überspringen (schneller bei sehr großen Dateien)."
+        },
+        {
+          "name": "limit",
+          "flag": "--limit",
+          "type": "integer",
+          "required": false,
+          "description": "Höchstzahl gelisteter eingebetteter Dateien (Standard 200)."
+        }
+      ],
+      "readonly": true,
+      "timeout": 300
+    },
+    {
+      "name": "strings",
+      "description": "Listet lesbare Zeichenketten (ASCII und UTF-16) einer Datei mit Offset, optional gefiltert. Gut für Spielstände und unbekannte Binärdateien.",
+      "run": [
+        "python",
+        "cli.py",
+        "strings",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "path",
+          "flag": "--path",
+          "type": "string",
+          "required": true,
+          "description": "Pfad der Datei."
+        },
+        {
+          "name": "filter",
+          "flag": "--filter",
+          "type": "string",
+          "required": false,
+          "description": "Nur Zeichenketten, die diesen Text enthalten (ohne Groß/Klein)."
+        },
+        {
+          "name": "min_length",
+          "flag": "--min-length",
+          "type": "integer",
+          "required": false,
+          "description": "Mindestlänge (Standard 5)."
+        },
+        {
+          "name": "limit",
+          "flag": "--limit",
+          "type": "integer",
+          "required": false,
+          "description": "Höchstzahl der Ergebnisse (Standard 500)."
+        }
+      ],
+      "readonly": true
+    },
+    {
+      "name": "hexdump",
+      "description": "Zeigt Rohbytes einer Datei ab einem Offset als Hex-Dump (max. 64 KB).",
+      "run": [
+        "python",
+        "cli.py",
+        "hexdump",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "path",
+          "flag": "--path",
+          "type": "string",
+          "required": true,
+          "description": "Pfad der Datei."
+        },
+        {
+          "name": "offset",
+          "flag": "--offset",
+          "type": "string",
+          "required": false,
+          "description": "Start-Offset, dezimal oder hex mit 0x (Standard 0)."
+        },
+        {
+          "name": "length",
+          "flag": "--length",
+          "type": "integer",
+          "required": false,
+          "description": "Anzahl Bytes (Standard 256)."
+        }
+      ],
+      "readonly": true
+    },
+    {
+      "name": "archive-list",
+      "description": "Listet den Inhalt eines Spiel-Archivs (Name, Größe, Typ). Unbekannte Container werden per Signatur nach eingebetteten Dateien durchsucht.",
+      "run": [
+        "python",
+        "cli.py",
+        "archive-list",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "path",
+          "flag": "--path",
+          "type": "string",
+          "required": true,
+          "description": "Pfad des Archivs (.pak, .pk3, .wad, .unity3d, _dir.vpk, .pck, .zip …)."
+        },
+        {
+          "name": "filter",
+          "flag": "--filter",
+          "type": "string",
+          "required": false,
+          "description": "Namensmuster mit * und ?, mehrere mit ; getrennt (z. B. *.png;sounds/*)."
+        },
+        {
+          "name": "kind",
+          "flag": "--kind",
+          "type": "string",
+          "required": false,
+          "description": "Nur diese Art: Bild, Audio, Text, Spieldaten, Karte."
+        },
+        {
+          "name": "carve",
+          "flag": "--carve",
+          "type": "boolean",
+          "required": false,
+          "description": "Format ignorieren und nur per Signatur-Suche auflisten."
+        },
+        {
+          "name": "limit",
+          "flag": "--limit",
+          "type": "integer",
+          "required": false,
+          "description": "Höchstzahl gelisteter Einträge (Standard 500)."
+        }
+      ],
+      "readonly": true,
+      "timeout": 300
+    },
+    {
+      "name": "archive-extract",
+      "description": "Entpackt Einträge eines Spiel-Archivs in einen Zielordner; Doom-/Half-Life-Grafiken und -Sounds werden zu PNG/WAV. Schreibt Dateien – zuerst mit dry_run prüfen.",
+      "run": [
+        "python",
+        "cli.py",
+        "archive-extract",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "path",
+          "flag": "--path",
+          "type": "string",
+          "required": true,
+          "description": "Pfad des Archivs."
+        },
+        {
+          "name": "out",
+          "flag": "--out",
+          "type": "string",
+          "required": true,
+          "description": "Zielordner (wird angelegt; nichts wird überschrieben)."
+        },
+        {
+          "name": "entries",
+          "flag": "--entries",
+          "type": "string",
+          "required": false,
+          "description": "Namensmuster mit * und ?, mehrere mit ; getrennt (Standard: alle)."
+        },
+        {
+          "name": "kind",
+          "flag": "--kind",
+          "type": "string",
+          "required": false,
+          "description": "Nur diese Art: Bild, Audio, Text, Spieldaten, Karte."
+        },
+        {
+          "name": "media_only",
+          "flag": "--media-only",
+          "type": "boolean",
+          "required": false,
+          "description": "Nur Bilder und Sounds entpacken."
+        },
+        {
+          "name": "no_convert",
+          "flag": "--no-convert",
+          "type": "boolean",
+          "required": false,
+          "description": "Doom-/Half-Life-Ressourcen roh statt als PNG/WAV speichern."
+        },
+        {
+          "name": "carve",
+          "flag": "--carve",
+          "type": "boolean",
+          "required": false,
+          "description": "Per Signatur-Suche gefundene Dateien entpacken."
+        },
+        {
+          "name": "dry_run",
+          "flag": "--dry-run",
+          "type": "boolean",
+          "required": false,
+          "description": "Nichts schreiben, nur die geplanten Zieldateien zeigen."
+        }
+      ],
+      "readonly": false,
+      "timeout": 600
+    },
+    {
+      "name": "registry-snapshot",
+      "description": "Liest Registry-Zweige (nur lesen) und speichert sie als Snapshot-Datei, z. B. vor und nach einer Installation. Schreibt die Snapshot-Datei – mit dry_run nur Vorschau.",
+      "run": [
+        "python",
+        "cli.py",
+        "registry-snapshot",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "roots",
+          "flag": "--roots",
+          "type": "string",
+          "required": false,
+          "description": "Zweige mit ; getrennt, z. B. HKCU\\Software;HKLM\\SOFTWARE (Standard)."
+        },
+        {
+          "name": "label",
+          "flag": "--label",
+          "type": "string",
+          "required": false,
+          "description": "Bezeichnung, z. B. vorher oder nachher."
+        },
+        {
+          "name": "out",
+          "flag": "--out",
+          "type": "string",
+          "required": false,
+          "description": "Zieldatei (.pireg); Standard: Ordner snapshots im Projekt."
+        },
+        {
+          "name": "dry_run",
+          "flag": "--dry-run",
+          "type": "boolean",
+          "required": false,
+          "description": "Nichts lesen oder schreiben, nur Zweige und Zieldatei zeigen."
+        }
+      ],
+      "readonly": false,
+      "timeout": 600
+    },
+    {
+      "name": "registry-snapshots",
+      "description": "Listet vorhandene Registry-Snapshots mit Zeit, Bezeichnung und Zweigen.",
+      "run": [
+        "python",
+        "cli.py",
+        "registry-snapshots",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "folder",
+          "flag": "--folder",
+          "type": "string",
+          "required": false,
+          "description": "Ordner mit .pireg-Dateien (Standard: snapshots im Projekt)."
+        }
+      ],
+      "readonly": true
+    },
+    {
+      "name": "registry-compare",
+      "description": "Vergleicht zwei Registry-Snapshots: neue, gelöschte und geänderte Schlüssel und Werte mit altem und neuem Wert.",
+      "run": [
+        "python",
+        "cli.py",
+        "registry-compare",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "before",
+          "flag": "--before",
+          "type": "string",
+          "required": true,
+          "description": "Snapshot-Datei vorher."
+        },
+        {
+          "name": "after",
+          "flag": "--after",
+          "type": "string",
+          "required": true,
+          "description": "Snapshot-Datei nachher."
+        },
+        {
+          "name": "filter",
+          "flag": "--filter",
+          "type": "string",
+          "required": false,
+          "description": "Nur Änderungen, deren Schlüssel/Wert diesen Text enthält."
+        },
+        {
+          "name": "limit",
+          "flag": "--limit",
+          "type": "integer",
+          "required": false,
+          "description": "Höchstzahl gelisteter Änderungen (Standard 1000)."
+        }
+      ],
+      "readonly": true,
+      "timeout": 600
+    },
+    {
+      "name": "processes",
+      "description": "Listet laufende Programme mit PID, Pfad und Programmordner (um z. B. den Ordner eines Spiels zu finden).",
+      "run": [
+        "python",
+        "cli.py",
+        "processes",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "filter",
+          "flag": "--filter",
+          "type": "string",
+          "required": false,
+          "description": "Nur Programme, deren Name/Pfad diesen Text enthält."
+        },
+        {
+          "name": "limit",
+          "flag": "--limit",
+          "type": "integer",
+          "required": false,
+          "description": "Höchstzahl (Standard 300)."
+        }
+      ],
+      "readonly": true
+    },
+    {
+      "name": "watch",
+      "description": "Beobachtet N Sekunden lang, welche Dateien geschrieben werden (Ordner eines Prozesses und/oder eigene Ordner, sonst Dokumente/Saved Games/AppData) und markiert mögliche Spielstände und Configs.",
+      "run": [
+        "python",
+        "cli.py",
+        "watch",
+        "--json"
+      ],
+      "args": [
+        {
+          "name": "seconds",
+          "flag": "--seconds",
+          "type": "number",
+          "required": false,
+          "description": "Dauer in Sekunden (Standard 15, max. 600)."
+        },
+        {
+          "name": "process",
+          "flag": "--process",
+          "type": "string",
+          "required": false,
+          "description": "Laufendes Programm (z. B. spiel.exe oder PID); dessen Ordner wird überwacht."
+        },
+        {
+          "name": "folders",
+          "flag": "--folders",
+          "type": "string",
+          "required": false,
+          "description": "Weitere Ordner, mit ; getrennt."
+        },
+        {
+          "name": "default_folders",
+          "flag": "--default-folders",
+          "type": "boolean",
+          "required": false,
+          "description": "Zusätzlich Dokumente, Saved Games und AppData überwachen (typische Spielstand-Orte)."
+        },
+        {
+          "name": "exclude",
+          "flag": "--exclude",
+          "type": "string",
+          "required": false,
+          "description": "Zusätzliche Ausschlussmuster (Pfadteile), mit ; getrennt."
+        },
+        {
+          "name": "limit",
+          "flag": "--limit",
+          "type": "integer",
+          "required": false,
+          "description": "Höchstzahl gelisteter Dateien/Ereignisse (Standard 300)."
+        }
+      ],
+      "readonly": true,
+      "timeout": 660
+    }
+  ]
+}
