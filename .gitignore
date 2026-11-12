@@ -5,3 +5,4 @@ dist/
 *.spec
 snapshots/
 beispiele/
+release/

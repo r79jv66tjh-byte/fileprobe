@@ -1,0 +1,10 @@
+{
+  "name": "FileProbe",
+  "entry": "FileProbe.py",
+  "pyinstaller": [
+    "--exclude-module",
+    "matplotlib",
+    "--exclude-module",
+    "pandas"
+  ]
+}
