@@ -23,7 +23,6 @@ class ArchiveTab(ttk.Frame):
         self.bg = Background(self)
         self.stack: list[archives.Reader] = []     # verschachtelte Archive
         self.preview_data: bytes | None = None
-        self.preview_name = ""
 
         top = ttk.Frame(self)
         top.pack(fill="x")
@@ -206,7 +205,7 @@ class ArchiveTab(ttk.Frame):
         conv = self.reader.convert(e, data) if self.conv_var.get() else None
         if conv:
             name, data = conv
-        self.preview_data, self.preview_name = data, name
+        self.preview_data = data
         sigs = formats.match_signatures(data[:4096])
         what = sigs[0].name if sigs else "unbekannt"
         desc = self.image.show(data)

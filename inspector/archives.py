@@ -463,7 +463,7 @@ class UnityFSReader(Reader):
                 raise ArchiveError("Header beschädigt")
             return bytes(b[p:e]).decode("ascii", "replace"), e + 1
 
-        self.player_ver, p = cstr(p)
+        _player_ver, p = cstr(p)
         self.engine_ver, p = cstr(p)
         total, csize, usize, flags = struct.unpack_from(">qIII", b, p)
         p += 20
@@ -598,7 +598,7 @@ class VpkReader(Reader):
                     fn = s()
                     if not fn:
                         break
-                    crc, pre, arc, ofs, ln, term = struct.unpack_from("<IHHIIH", d, p)
+                    _crc, pre, arc, ofs, ln, _term = struct.unpack_from("<IHHIIH", d, p)
                     p += 18
                     preload = d[p:p + pre]
                     p += pre
@@ -679,7 +679,7 @@ class GodotPckReader(Reader):
 
 
 # --------------------------------------------------------------------------- #
-# Fallback: Signatur-Suche
+# Fallback reader that carves by signature
 # --------------------------------------------------------------------------- #
 
 class CarveReader(Reader):
