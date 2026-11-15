@@ -241,7 +241,6 @@ class TestArchives(Samples):
             shutil.rmtree(out, ignore_errors=True)
 
     def test_source_unchanged(self):
-        import hashlib
         before = {k: _sha(v) for k, v in self.p.items()}
         for k, v in self.p.items():
             formats.analyze(v)

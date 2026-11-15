@@ -41,14 +41,6 @@ def _u32(b, o):
     return struct.unpack_from("<I", b, o)[0]
 
 
-def _u32be(b, o):
-    return struct.unpack_from(">I", b, o)[0]
-
-
-def _u64(b, o):
-    return struct.unpack_from("<Q", b, o)[0]
-
-
 # ---- Validierer ------------------------------------------------------------ #
 
 def _v_jpeg(b):
@@ -257,7 +249,7 @@ def _c_zip(b, p):
 
 
 def _c_fsb5(b, p):
-    ver, nsamp, shdr, names, data = struct.unpack_from("<IIIII", b, p + 4)
+    ver, _nsamp, shdr, names, data = struct.unpack_from("<IIIII", b, p + 4)
     hsize = 64 if ver == 0 else 60
     return hsize + shdr + names + data
 
@@ -505,10 +497,10 @@ def _detect_special(f, size: int, head: bytes) -> Match | None:
     # Unity SerializedFile (.assets / CAB-…): Header mit Metadaten-Größe, Dateigröße, Version
     if size >= 48:
         try:
-            msize, fsize, ver, dofs = struct.unpack_from(">IIII", head, 0)
+            msize, fsize, ver, _dofs = struct.unpack_from(">IIII", head, 0)
             if 9 <= ver <= 30 and (fsize == size or ver >= 22) and 0 < msize < size:
                 if ver >= 22:
-                    msize, fsize, dofs = struct.unpack_from(">IQQ", head, 20)
+                    msize, fsize, _dofs = struct.unpack_from(">IQQ", head, 20)
                     if fsize != size:
                         raise ValueError
                 return Match("Unity-SerializedFile (.assets)", "Spiel-Archiv", ".assets", "wahrscheinlich",

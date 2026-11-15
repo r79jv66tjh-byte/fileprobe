@@ -305,7 +305,7 @@ def fsb5_bytes(data_len=100) -> bytes:
 # Valve VPK (v2) und Godot PCK
 # --------------------------------------------------------------------------- #
 
-def vpk(files: dict[str, bytes], split_name: str | None = None) -> tuple[bytes, bytes]:
+def vpk(files: dict[str, bytes]) -> tuple[bytes, bytes]:
     """Gibt (dir.vpk, _000.vpk) zurück. Dateien mit 'big' im Namen landen im Teilarchiv."""
     by_ext: dict[str, dict[str, list]] = {}
     for full, payload in files.items():
