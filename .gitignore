@@ -6,3 +6,5 @@ dist/
 snapshots/
 beispiele/
 release/
+# Claude Code hooks and agents are installed per user, never in this public repository
+.claude/
